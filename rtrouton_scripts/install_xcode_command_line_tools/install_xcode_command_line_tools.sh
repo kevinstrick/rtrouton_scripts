@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# Installing the Xcode command line tools on 10.7.x through 10.10.x
+# Installing the Xcode command line tools on 10.7.x or higher
 
 osx_vers=$(sw_vers -productVersion | awk -F "." '{print $2}')
 cmd_line_tools_temp_file="/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress"
 
-# Installing the latest Xcode command line tools on 10.9.x or 10.10.x
+# Installing the latest Xcode command line tools on 10.9.x or higher
 
-if [[ "$osx_vers" -eq 9 ]] || [[ "$osx_vers" -eq 10 ]]; then
+if [[ "$osx_vers" -ge 9 ]]; then
 
 	# Create the placeholder file which is checked by the softwareupdate tool 
 	# before allowing the installation of the Xcode command line tools.
@@ -49,7 +49,10 @@ if [[ "$osx_vers" -eq 7 ]] || [[ "$osx_vers" -eq 8 ]]; then
 		curl "$DMGURL" -o "$TOOLS"
 		TMPMOUNT=`/usr/bin/mktemp -d /tmp/clitools.XXXX`
 		hdiutil attach "$TOOLS" -mountpoint "$TMPMOUNT" -nobrowse
-		installer -pkg "$(find $TMPMOUNT -name '*.mpkg')" -target /
+		# The "-allowUntrusted" flag has been added to the installer
+		# command to accomodate for now-expired certificates used
+		# to sign the downloaded command line tools.
+		installer -allowUntrusted -pkg "$(find $TMPMOUNT -name '*.mpkg')" -target /
 		hdiutil detach "$TMPMOUNT"
 		rm -rf "$TMPMOUNT"
 		rm "$TOOLS"
